@@ -8,6 +8,11 @@ public class Paradox {
     private static double counter_no_choice = 0;
     private static double counter_rechoice = 0;
     private static double counter_no_rechoice_after = 0;
+    private static final int TOTAL_DOORS_COUNT = 3;
+    private static final int EMPTY_DOOR = 0;
+    private static final int DOOR_WITH_CAR = 1;
+
+
     public static void main(String[] args) {
 
         for (int i = 0; i < ITERATIONS_COUNT; i++) {
@@ -16,7 +21,6 @@ public class Paradox {
         System.out.println("Количество итераций: " + ITERATIONS_COUNT);
         System.out.println("Без изменений выбора: " + counter_no_choice / ITERATIONS_COUNT);
         System.out.println("поменяли выбор: " + counter_rechoice / ITERATIONS_COUNT);
-        System.out.println("не меняли после убирания выбор: " + counter_no_rechoice_after / ITERATIONS_COUNT);
 
     }
     //утилитная функция
@@ -28,51 +32,61 @@ public class Paradox {
     private static void emulate() {
         int[] doors = generateDoors();
 
-        int choiceKey = makeChoice();
+        int choiceKey = getRandomDoorNumber();
 
         //запираем дверь, не выбранную игроком и без автомобиля
-        int removeKey = removeDoor(doors, choiceKey);
+        int removeKey = removeRandomDoorExceptChoosen(doors, choiceKey);
 
         //1. Не меняем выбора
-        if (doors[choiceKey] == 1) {
+        if (doors[choiceKey] == DOOR_WITH_CAR) {
             counter_no_choice++;
         }
 
         //2. Выбираем другую дверь
-        makeLastChoce(choiceKey, removeKey, doors);
-
+        makeLastChoice(choiceKey, removeKey, doors);
 
     }
 
-    private static void makeLastChoce(int choiceKey, int removeKey, int[] doors) {
+    /**
+     * Получаем элемент массива со значением DOOR_WITH_CAR исключая индексы choiceKey и removeKey
+     * @param choiceKey индекс/маркер выбранной двери
+     * @param removeKey индекс/маркер удаленной двери
+     * @param doors ожидаем массив из 3 элементов
+     */
+    private static void makeLastChoice(int choiceKey, int removeKey, int[] doors) {
+
+        if (doors.length!=3) throw new RuntimeException("Count of doors expected 3\n"+"Current value "+doors.length);
+
         for (int i = 0; i < doors.length; i++) {
-            if (i != choiceKey && i != removeKey && doors[i] == 1) {
+            if (i != choiceKey && i != removeKey && doors[i] == DOOR_WITH_CAR) {
                 counter_rechoice++;
             }
         }
     }
 
-    private static int makeChoice() {
-        return random.nextInt(3);
+    private static int getRandomDoorNumber() {
+        return random.nextInt(TOTAL_DOORS_COUNT);
     }
 
 
-    private static int removeDoor(int[] doors, int choice) {
+    private static int removeRandomDoorExceptChoosen(int[] doors, int choice) {
+
         int[] indexesOfDoors = arrayOfIndexesExcludedOne(choice, doors);
+
         int removeKey = generateRandomValueFromSpecificInt(indexesOfDoors);
-        if (doors[removeKey]!=1){
+        if (doors[removeKey]!=DOOR_WITH_CAR){
             return removeKey;
         }
         for (int indexesOfDoor : indexesOfDoors) {
-            if (doors[indexesOfDoor] != 1) {
+            if (doors[indexesOfDoor] != DOOR_WITH_CAR) {
                 return indexesOfDoor;
             }
         }
         return -1;
     }
     private static int[] generateDoors() {
-        int[] doors = new int[]{0, 0, 0};
-        doors[random.nextInt(3)] = 1;
+        int[] doors = new int[]{EMPTY_DOOR, EMPTY_DOOR, EMPTY_DOOR};
+        doors[random.nextInt(TOTAL_DOORS_COUNT)] = DOOR_WITH_CAR;
         return doors;
     }
 
